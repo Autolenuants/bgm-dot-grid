@@ -1,10 +1,11 @@
 {
   "name": "bgm-dot-grid",
-  "version": "1.9.0",
-  "description": "BGM点格子 - 图片缓存后端 + 直连API前端",
+  "version": "1.12.1",
+  "description": "BGM点格子 - v1.12.1 修复版（IP 白名单修复）",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "check": "node --check index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
