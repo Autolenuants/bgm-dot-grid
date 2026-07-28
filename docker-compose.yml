@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  bgm-dot-grid:
+    image: huohen92/bgm-dot-grid:v1.9.0
+    container_name: bgm-dot-grid
+    restart: unless-stopped
+    ports:
+      - "4500:3000"
+      - "4501:3001"
+      - "4502:3002"
+    environment:
+      # API 端点：/v0 = 本地代理；https://api.bgm.tv/v0 = 直连官方
+      - API_BASE=/v0
+      # 图片代理：/img/ = 本地缓存；留空 = 直连；也可填公共反代地址
+      - IMAGE_PROXY_PREFIX=/img/
+      # Bangumi 主站：海报、条目、评论区跳转用
+      - BGM_SITE=https://bgm.tv
+      # 后端拉取原图域名：lain.bgm.tv 或 lain.bangumi.one
+      - BGM_IMG_DOMAIN=lain.bgm.tv
+      # 内置 Token：留空则由用户在前端填写
+      - INBUILT_TOKEN=
+      # IP 白名单：留空 = 不限制；local = 仅内网；或填 192.168.*.*
+      - ALLOWED_IPS=
+      # 是否对 4500 普通前端端口启用 IP 白名单：默认 0
+      - CHECK_PUBLIC_IP=0
+      # 是否对 4501 私有管理端口启用 IP 白名单：默认 1
+      - CHECK_PRIVATE_IP=1
+      # 是否对 4502 API 代理端口启用 IP 白名单：默认 1
+      - CHECK_PROXY_IP=1
+      # 如果部署在可信反向代理后面并需要读取 X-Forwarded-For，可设为 1
+      - TRUST_PROXY=0
+    volumes:
+      - ./image_cache:/app/image_cache
+      - ./bgmdata_cache:/app/bgmdata_cache
