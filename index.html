@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+<title>BGM点格子</title>
+<link rel="icon" type="image/png" href="https://s41.ax1x.com/2026/06/03/pmVJa4g.png">
+<style>*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}:root{--bg:#f5f5f7;--card-bg:#ffffff;--text:#1a1a2e;--text2:#8e8ea0;--primary:#f09199;--primary-dark:#e07a84;--primary-light:rgba(240,145,153,0.08);--border:#eef2f6;--radius-card:12px;--radius-ep:10px;--shadow-sm:0 1px 3px rgba(0,0,0,0.04);--shadow-md:0 4px 12px rgba(0,0,0,0.06);--latest-bg:#e6f7e6;--latest-border:#3bc06f;--future-bg:#f2f4f8;--future-border:#e2e6ed;--future-text:#aab;--menu-bg:#ffffff;--modal-overlay:rgba(0,0,0,0.5);--header-h:52px}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0f1a;--card-bg:#1a1a2e;--text:#e4e4e7;--text2:#8a8a9e;--primary:#f09199;--primary-dark:#e07a84;--primary-light:rgba(240,145,153,0.12);--border:#2a2a40;--shadow-sm:0 1px 3px rgba(0,0,0,0.3);--shadow-md:0 4px 12px rgba(0,0,0,0.4);--latest-bg:#1a3a1a;--latest-border:#5abf5a;--future-bg:#222238;--future-border:#333350;--future-text:#7a7a8e;--menu-bg:#222238;--modal-overlay:rgba(0,0,0,0.8)}
+.card .bg{backdrop-filter:none;background:rgba(0,0,0,0.7)}
+.search-box input,.filters button,.set{background:var(--card-bg);border-color:var(--border);color:var(--text)}
+.search-box input:focus{border-color:var(--primary)}
+.stats{background:rgba(26,26,46,0.9)}
+.progress-text,.status-chip,.next-btn{background:#2a2a40;color:var(--text)}
+.status-chip.active{background:var(--primary);color:white}
+.ep-item{background:var(--card-bg);border-color:var(--border);color:var(--text2)}
+.ep-item.watched{background:var(--primary);border-color:var(--primary);color:white}
+.ep-menu{background:var(--menu-bg)}
+.ep-menu .menu-header{color:var(--primary);border-bottom-color:var(--border)}
+.ep-menu .menu-item:hover{background:#2f2f48}
+.context-menu{background:var(--menu-bg)}
+.settings-card{background:var(--card-bg)}
+.card .info .meta .eps-progress{background:rgba(232,105,122,0.15)}
+.filters button.active{background:var(--primary);color:white}
+}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px;-webkit-font-smoothing:antialiased}
+.header{background:var(--card-bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:6px 12px;backdrop-filter:blur(12px);background-color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:8px;height:var(--header-h)}
+@media (prefers-color-scheme:dark){.header{background-color:rgba(26,26,46,0.85)}
+}
+.header h1{font-size:17px;font-weight:700;flex-shrink:0;cursor:pointer;white-space:nowrap;letter-spacing:-0.5px}
+.header h1 span{color:var(--primary)}
+.search-box{position:relative;flex:0 1 180px;min-width:0}
+.search-box input{width:100%;padding:5px 8px 5px 26px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:var(--bg);transition:all 0.2s}
+.search-box input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+.search-box .icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text2);pointer-events:none}
+.filters{display:flex;gap:2px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex:1;margin:0 4px}
+.filters::-webkit-scrollbar{display:none}
+.filters button{padding:4px 10px;border:none;border-radius:6px;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);transition:all 0.15s;white-space:nowrap;flex-shrink:0}
+.filters button:hover{background:var(--primary-light);color:var(--primary)}
+.filters button.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.set{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s}
+.set:hover{border-color:var(--primary);background:var(--primary-light)}
+.conn{display:none;padding:5px 12px;font-size:11px;border-bottom:1px solid var(--border);align-items:center;gap:8px;flex-wrap:wrap;background:var(--card-bg)}
+.conn.show{display:flex}
+.avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px}
+.dot.g{background:#3bc06f}
+.dot.b{background:#5aa9dd;animation:pulse 0.8s infinite}
+@keyframes pulse{0%,100%{opacity:0.5}
+50%{opacity:1}
+}
+.user{font-weight:600;color:var(--text)}
+.conn .btn{margin-left:auto;padding:2px 10px;border-radius:6px;border:none;font-size:11px;cursor:pointer;background:var(--border);color:var(--text2);transition:all 0.2s}
+.conn .btn:hover{background:var(--primary);color:white}
+.stats{padding:6px 12px 0;font-size:11px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats .stat-item{display:inline-flex;align-items:center;gap:3px}
+.stats .stat-num{font-style:normal;font-weight:700;font-size:12px}
+.stats .stat-num.total{color:var(--text)}
+.stats .stat-num.watched{color:#3bc06f}
+.stats .stat-num.watching{color:#5aa9dd}
+.stats .stat-num.wish{color:var(--primary)}
+.stats .stats-right{margin-left:auto;display:inline-flex;align-items:center;gap:6px}
+.stats .tbtn{padding:3px 10px;border-radius:6px;border:none;font-size:10px;cursor:pointer;background:var(--border);color:var(--text2);transition:0.2s;white-space:nowrap}
+.stats .tbtn:hover{background:var(--primary);color:white}
+.stats .tbtn.active{background:var(--primary-light);color:var(--primary)}
+.pw{padding:0 12px}
+.pb{height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.pb .f{height:100%;background:linear-gradient(90deg,var(--primary),#3bc06f);width:0%;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);border-radius:2px}
+.loadbar{height:2px;background:var(--border);overflow:hidden;display:none}
+.loadbar.active{display:block}
+.loadbar .t{height:100%;width:100%;background:linear-gradient(90deg,transparent,var(--primary),transparent);animation:loadbar 1.2s ease infinite}
+@keyframes loadbar{0%{transform:translateX(-100%)}
+100%{transform:translateX(100%)}
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:12px 12px 80px}
+@media (max-width:640px){.grid{grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 10px 80px}
+}
+.card{background:var(--card-bg);border-radius:var(--radius-card);overflow:hidden;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;border:1px solid var(--border)}
+.card:active{transform:scale(0.97)}
+@media (hover:hover){.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+}
+.card .cv{width:100%;aspect-ratio:3/4;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:36px;color:#ccc;position:relative;overflow:hidden}
+.card .cv img{width:100%;height:100%;object-fit:cover;display:block}
+.card .bg{position:absolute;top:6px;left:6px;padding:2px 8px;border-radius:6px;font-size:9px;font-weight:600;color:white;background:rgba(0,0,0,0.55);letter-spacing:0.3px}
+.card .bg.wish{background:var(--primary)}
+.card .bg.watched{background:#3bc06f}
+.card .bg.watching{background:#5aa9dd}
+.card .bg.hold{background:#f4a261}
+.card .bg.drop{background:#9aa6b5}
+.card .day{position:absolute;bottom:6px;left:6px;padding:2px 7px;border-radius:4px;font-size:8px;font-weight:600;color:white;background:rgba(0,0,0,0.6)}
+.card .score{position:absolute;bottom:6px;right:6px;padding:2px 7px;border-radius:4px;font-size:8px;font-weight:600;color:#f5a623;background:rgba(0,0,0,0.6)}
+.card .info{padding:8px 8px 10px;display:flex;flex-direction:column;height:72px;overflow:hidden}
+.card .info .ti{font-size:12px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text);flex-shrink:0;min-height:calc(2em * 1.3)}
+.card .info .meta{margin-top:5px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;height:18px}
+.card .info .meta .eps-progress{display:inline-flex;align-items:center;gap:2px;background:var(--primary-light);padding:0 7px;border-radius:4px;font-size:10px;font-weight:600;color:var(--primary);line-height:18px}
+@media (max-width:640px){.card .bg{font-size:8px;padding:2px 6px;top:4px;left:4px}
+.card .info{height:66px}
+.card .info .ti{font-size:11px}
+.card .info .meta .eps-progress{font-size:9px;line-height:16px;padding:0 5px}
+}
+.modal-overlay{display:none;position:fixed;inset:0;background:var(--modal-overlay);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center;padding:16px;cursor:pointer}
+.modal-overlay.active{display:flex}
+.episode-modal{background:var(--card-bg);border-radius:28px;width:100%;max-width:680px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);cursor:default}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:center}
+.modal-poster{width:56px;height:75px;border-radius:10px;background:#eef2f6;object-fit:cover;flex-shrink:0;cursor:pointer}
+.modal-title-area{flex:1}
+.modal-title-area h3{font-size:18px;font-weight:700;display:inline-block;user-select:none;transition:color 0.1s ease}
+.modal-title-area h3.copy-success{color:#f09199 !important}
+.modal-title-area .sub{font-size:12px;color:var(--text2);margin-top:4px}
+.next-btn{background:var(--primary);color:white;border:none;border-radius:40px;padding:6px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:0.2s;margin-left:auto;white-space:nowrap}
+.next-btn:hover{background:var(--primary-dark);transform:scale(0.98)}
+.modal-body{overflow-y:auto;padding:20px;flex:1}
+.status-actions{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.status-chip{padding:6px 14px;border-radius:40px;background:#f0f2f5;font-size:12px;font-weight:500;cursor:pointer;transition:0.1s;color:var(--text)}
+.status-chip.active{background:var(--primary);color:white}
+.ep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:12px;margin-top:12px}
+.ep-item{background:var(--card-bg);border:1.5px solid var(--border);border-radius:var(--radius-ep);aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer;transition:0.1s;color:var(--text2)}
+.ep-item.watched{background:var(--primary);border-color:var(--primary);color:white}
+.ep-item.latest-unwatched{border-color:var(--latest-border);background:var(--latest-bg);color:var(--text);box-shadow:0 0 0 1px var(--latest-border)}
+.ep-item.future-ep{background:var(--future-bg);border-color:var(--future-border);color:var(--future-text)}
+.ep-item.syncing{opacity:0.5;pointer-events:none;transform:scale(0.96)}
+.progress-text{background:#f0f2f5;border-radius:60px;padding:10px 14px;font-size:13px;margin-top:16px;text-align:center;font-weight:500;background:var(--border);color:var(--text2)}
+@media (max-width:640px){.header{padding:4px 10px;gap:6px;height:48px}
+.header h1{font-size:15px}
+.search-box{flex:0 1 120px}
+.search-box input{font-size:11px;padding:4px 6px 4px 22px;border-radius:6px}
+.search-box .icon{font-size:10px;left:6px}
+.filters{gap:0;margin:0 2px}
+.filters button{padding:4px 8px;font-size:11px}
+.set{width:28px;height:28px;font-size:13px;border-radius:6px}
+.stats{padding:4px 10px 0;font-size:10px;gap:4px}
+.stats .stat-item{gap:2px}
+.stats .stat-num{font-size:11px}
+.stats .stats-right{gap:4px}
+.stats .tbtn{padding:2px 8px;font-size:9px;border-radius:4px}
+.pw{padding:0 10px}
+.grid{grid-template-columns:repeat(3,1fr);gap:6px;padding:8px 8px 70px}
+.card{border-radius:10px}
+.card .bg{font-size:8px;padding:2px 6px;top:4px;left:4px;border-radius:4px}
+.card .day,.card .score{font-size:7px;padding:1px 5px;bottom:4px;left:4px;border-radius:3px}
+.card .score{left:auto;right:4px}
+.card .info{padding:6px 6px 8px;height:62px}
+.card .info .ti{font-size:11px;min-height:calc(2em * 1.2);line-height:1.2}
+.card .info .meta{margin-top:3px;height:16px}
+.card .info .meta .eps-progress{font-size:9px;line-height:16px;padding:0 5px;border-radius:3px}
+.modal-overlay{padding:0;align-items:flex-end}
+.episode-modal{border-radius:16px 16px 0 0;max-height:88vh;width:100%}
+.modal-header{padding:10px 12px;gap:8px}
+.modal-poster{width:40px;height:54px;border-radius:8px}
+.modal-title-area h3{font-size:15px}
+.modal-title-area .sub{font-size:10px;margin-top:2px}
+.next-btn{padding:4px 12px;font-size:11px;border-radius:6px}
+.modal-body{padding:10px 12px 16px}
+.status-actions{gap:4px;margin-bottom:10px}
+.status-chip{padding:4px 10px;font-size:11px;border-radius:6px}
+.ep-grid{grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px;margin-top:6px;max-height:168px;overflow-y:auto}
+.ep-item{font-size:10px;border-radius:6px}
+.progress-text{font-size:9px;padding:5px 8px;margin-top:8px;border-radius:6px;flex-shrink:0}
+.settings-modal{padding:0;align-items:flex-end}
+.settings-card{padding:14px;border-radius:16px 16px 0 0;max-height:90vh;max-width:100%;width:100%}
+.settings-header{padding:12px 14px 0}
+.settings-header h2{font-size:16px}
+.settings-body{padding:12px 14px 20px}
+.set-section{margin-bottom:12px}
+.set-section-title{font-size:12px;margin-bottom:8px}
+.settings-card label{font-size:11px}
+.settings-card textarea{font-size:11px;padding:6px 8px;margin-bottom:10px}
+.settings-card input{font-size:11px;padding:5px 8px}
+.input-hint{font-size:10px}
+.input-with-ping{gap:4px;margin-bottom:10px}
+.ping-btn{width:28px;height:28px;font-size:11px}
+.ping-result{font-size:9px;min-width:30px}
+.set-actions{gap:6px;margin:14px 0 8px}
+.btn-action{padding:6px 0;font-size:12px;border-radius:8px}
+.token-status{font-size:11px;padding:5px 8px;border-radius:8px}
+}
+.ep-menu{position:fixed;background:var(--menu-bg);border-radius:20px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.2);padding:0;min-width:180px;z-index:400;display:none}
+.ep-menu .menu-header{padding:8px 16px;font-size:13px;font-weight:600;color:var(--primary);border-bottom:1px solid var(--border);margin:0;cursor:pointer}
+.ep-menu .menu-header:hover{background-color:var(--border)}
+.ep-menu .menu-item{padding:10px 18px;cursor:pointer;font-size:14px;transition:0.05s;color:var(--text);margin:0;border-top:none}
+.ep-menu .menu-item:not(:first-of-type){border-top:1px solid var(--border)}
+.ep-menu .menu-item:hover{background:var(--border)}
+.ep-menu.show{display:block}
+.context-menu{position:fixed;background:var(--menu-bg);border-radius:20px;box-shadow:0 8px 25px rgba(0,0,0,0.2);padding:8px 0;min-width:160px;z-index:401;display:none}
+.context-menu.show{display:block}
+.context-menu .menu-info{padding:8px 16px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:500}
+.context-menu .menu-item{padding:10px 18px;cursor:pointer;font-size:14px;transition:0.05s;color:var(--text)}
+.context-menu .menu-item:hover{background:var(--border)}
+.context-menu .menu-item.disabled{opacity:0.5;pointer-events:none}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);color:white;padding:5px 14px;border-radius:10px;font-size:12px;font-weight:500;z-index:500;opacity:0;transition:opacity 0.2s;pointer-events:none;max-width:85vw;text-align:center}
+.toast.show{opacity:1}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:var(--primary);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}
+}
+.mask{display:none;position:fixed;inset:0;z-index:390;background:transparent}
+.mask.active{display:block}
+.settings-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:20px}
+.settings-modal.active{display:flex}
+.settings-card{background:var(--card-bg);border-radius:20px;width:100%;max-width:440px;max-height:85vh;overflow:hidden;box-shadow:0 20px 40px -12px rgba(0,0,0,0.3);display:flex;flex-direction:column}
+.settings-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0}
+.settings-header h2{font-size:18px;color:var(--text)}
+.settings-close{width:28px;height:28px;border-radius:8px;border:none;background:var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:0.2s}
+.settings-close:hover{background:var(--primary-light);color:var(--primary)}
+.settings-body{padding:16px 20px 20px;overflow-y:auto;flex:1}
+.set-section{margin-bottom:18px}
+.set-section:last-of-type{margin-bottom:0}
+.set-section-title{font-size:13px;font-weight:600;color:var(--primary);margin-bottom:10px;letter-spacing:0.3px}
+.settings-card label{font-size:12px;font-weight:500;display:block;margin-bottom:4px;color:var(--text2)}
+.input-wrap{background:var(--bg);border:1px solid var(--border);border-radius:10px;transition:border-color 0.2s}
+.input-wrap:focus-within{border-color:var(--primary)}
+.settings-card textarea{width:100%;padding:8px 10px;border:none;border-radius:10px;font-family:monospace;font-size:12px;resize:vertical;background:transparent;color:var(--text);outline:none;line-height:1.5}
+.settings-card input{width:100%;padding:7px 10px;border:none;border-radius:10px;font-size:12px;background:transparent;color:var(--text);outline:none}
+.input-hint{font-size:11px;color:var(--text2);margin-top:4px;opacity:0.7}
+.opt{font-weight:400;opacity:0.5}
+.input-with-ping{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.input-with-ping .input-wrap{flex:1;margin-bottom:0}
+.ping-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:0.2s}
+.ping-btn:hover{border-color:var(--primary);background:var(--primary-light)}
+.ping-btn.pinging{opacity:0.5;pointer-events:none}
+.ping-result{font-size:10px;color:var(--text2);white-space:nowrap;min-width:36px;text-align:left}
+.ping-result.g{color:#3bc06f}
+.ping-result.r{color:#e07a84}
+.set-actions{display:flex;gap:8px;margin:18px 0 10px}
+.btn-action{flex:1;padding:8px 0;border-radius:10px;border:none;font-size:13px;font-weight:500;cursor:pointer;transition:0.2s;background:var(--border);color:var(--text)}
+.btn-action:hover{filter:brightness(0.95)}
+.btn-action:disabled{opacity:0.4;cursor:not-allowed}
+.btn-action.primary{background:var(--primary);color:white}
+.btn-action.primary:hover{background:var(--primary-dark)}
+.btn-action.primary:disabled{opacity:0.4}
+.token-status{font-size:12px;padding:8px 12px;border-radius:10px;background:var(--border);color:var(--text2)}
+.token-status.success{background:#e6f7e6;color:#2e7d32}
+.footer-note{text-align:center;font-size:10px;color:var(--text2);padding:12px 0 20px;opacity:0.6}
+@media (max-width:640px){.settings-modal{padding:0;align-items:flex-end}
+.settings-card{border-radius:20px 20px 0 0;max-height:90vh;max-width:100%}
+.settings-header{padding:14px 16px 0}
+.settings-body{padding:14px 16px 20px}
+.set-section{margin-bottom:14px}
+.input-hint{font-size:10px}
+.button-group{gap:8px;margin-bottom:12px}
+.button-group button{padding:6px 14px;font-size:12px}
+.token-status{font-size:11px;padding:6px 10px;margin-top:10px}
+}</style>
+</head>
+<body>
+<div class="header">
+  <h1 onclick="openSettings()"><span>BGM</span> 点格子</h1>
+  <div class="search-box">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="搜索..." oninput="onSearchInput()">
+  </div>
+  <div class="filters" id="filterBar">
+    <button data-filter="all" onclick="setFilter('all')">全部</button>
+    <button data-filter="wish" onclick="setFilter('wish')">想看</button>
+    <button data-filter="watched" onclick="setFilter('watched')">看过</button>
+    <button data-filter="watching" class="active" onclick="setFilter('watching')">在看</button>
+    <button data-filter="hold" onclick="setFilter('hold')">搁置</button>
+    <button data-filter="drop" onclick="setFilter('drop')">抛弃</button>
+  </div>
+  <button class="set" onclick="openSettings()">⚙️</button>
+</div>
+<div class="conn" id="connBar">
+  <img id="userAvatar" class="avatar" style="display:none;" alt="avatar">
+  <span><span class="dot g" id="statusDot"></span><span id="connUser"></span> 已连接</span>
+  <span id="syncAgo"></span>
+</div>
+<div class="stats" id="statsArea">
+  <span class="stats-right">
+    <button class="tbtn" id="syncNowBtn" onclick="syncCurrentFilter()">↻ 同步</button>
+    <button class="tbtn" id="sortBtn" onclick="toggleSort()">▼ 排序</button>
+  </span>
+</div>
+<div class="pw"><div class="pb"><div class="f" id="progressFill"></div></div></div>
+<div class="loadbar" id="loadingBar"><div class="t"></div></div>
+<div class="grid" id="gridContainer"></div>
+<div class="footer-note">Powered By July · 本项目代码由 DeepSeek AI 提供 · v1.8.9</div>
+<div class="toast" id="toastMsg"></div>
+<div class="mask" id="globalMask" onclick="hideContextMenu()"></div>
+<div id="contextMenu" class="context-menu"></div>
+<div class="ep-menu" id="episodeMenu"></div>
+<div class="modal-overlay" id="episodeModal" onclick="closeEpisodeModal()">
+  <div class="episode-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <img id="modalPoster" class="modal-poster" alt="海报" onclick="gotoBgmDetail()">
+      <div class="modal-title-area">
+        <h3 id="modalTitle">加载中...</h3>
+        <div class="sub" id="modalMeta"></div>
+      </div>
+      <button class="next-btn" id="nextEpisodeBtn" onclick="watchOneEpisode()">📺 看一集</button>
+    </div>
+    <div class="modal-body">
+      <div class="status-actions" id="modalStatusBtns"></div>
+      <div id="episodesListArea"></div>
+    </div>
+  </div>
+</div>
+<div class="settings-modal" id="settingsModal">
+  <div class="settings-card">
+    <div class="settings-header">
+      <h2>⚙️ 设置</h2>
+      <button class="settings-close" onclick="closeSettings()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="settings-body">
+      <div class="set-section">
+        <div class="set-section-title">🔑 账号</div>
+        <label>Access Token</label>
+        <div class="input-wrap">
+          <textarea id="tokenInput" rows="2" placeholder="粘贴你的 Access Token"></textarea>
+        </div>
+        <div class="input-hint">在 <a href="https://next.bgm.tv/demo/access-token" target="_blank" style="color:var(--primary)">next.bgm.tv/demo/access-token</a> 获取</div>
+      </div>
+      <div class="set-section">
+        <div class="set-section-title">🌐 网络</div>
+        <label>API 端点</label>
+        <div class="input-with-ping">
+          <div class="input-wrap"><input type="text" id="apiEndpoint" value="https://api.bgm.tv/v0"></div>
+          <button class="ping-btn" data-url-selector="#apiEndpoint" onclick="pingUrl(this)">📡</button>
+          <span class="ping-result"></span>
+        </div>
+        <label>Bangumi 主站</label>
+        <div class="input-with-ping">
+          <div class="input-wrap"><input type="text" id="bgmSite" value="https://bgm.tv"></div>
+          <button class="ping-btn" data-url-selector="#bgmSite" onclick="pingUrl(this)">📡</button>
+          <span class="ping-result"></span>
+        </div>
+        <label>图片代理 <span class="opt">(可选)</span></label>
+        <div class="input-with-ping">
+          <div class="input-wrap"><input type="text" id="imageProxyPrefix" placeholder="留空则直连原图"></div>
+          <button class="ping-btn" data-url-selector="#imageProxyPrefix" onclick="pingUrl(this)">📡</button>
+          <span class="ping-result"></span>
+        </div>
+      </div>
+      <div class="set-section">
+        <div class="set-section-title">🎨 显示</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:400;">
+            <input type="checkbox" id="toggleBadge" style="width:auto;">
+            <span style="font-size:12px;">显示主页右上角状态标签</span>
+          </label>
+          <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:400;">
+            <input type="checkbox" id="toggleSchedule" style="width:auto;">
+            <span style="font-size:12px;">显示更新时间（更新星期）</span>
+          </label>
+          <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:400;">
+            <input type="checkbox" id="toggleScore" style="width:auto;">
+            <span style="font-size:12px;">显示评分</span>
+          </label>
+          <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:400;">
+            <input type="checkbox" id="toggleHint" style="width:auto;">
+            <span style="font-size:12px;">显示二级页面操作说明</span>
+          </label>
+        </div>
+      </div>
+      <div class="set-actions">
+        <button class="btn-action primary" id="connectBtn">🔌 连接</button>
+        <button class="btn-action" id="disconnectBtn" style="display:none;" onclick="onDisconnect()">断开</button>
+        <button class="btn-action" id="saveEnvBtn">💾 保存</button>
+      </div>
+      <div id="tokenStatus" class="token-status"></div>
+    </div>
+  </div>
+</div>
+<script>// ============================================================
+// 🌐 全局环境变量 - 运行时配置参数
+// 这些变量在 loadEnvSettings() 中从 localStorage 读取并同步到 UI
+// 也可通过 Web 设置页面修改后保存（覆盖 localStorage）
+// ============================================================
+let API_BASE = 'https://api.bgm.tv/v0';          // Bangumi API v0 端点（必填）
+let IMAGE_PROXY_PREFIX = '';                     // 图片代理前缀（可选，用于跨域）
+let BGM_SITE = 'https://bgm.tv';                 // Bangumi 主站域名（跳转用）
+let INBUILT_TOKEN = '';                          // 内嵌 Token（编译时注入，非必填）
+// ============================================================
+// 🔧 环境变量配置 - 所有设置项的 localStorage 存储键名
+// 每个键对应设置页面的一个配置项，用于持久化用户设置
+// ============================================================
+const STORAGE_KEYS = {
+  API: 'bgm_api_endpoint',          // API 端点地址（默认 https://api.bgm.tv/v0）
+  IMAGE_PROXY: 'bgm_image_proxy',   // 图片代理前缀（留空=直连）
+  BGM_SITE: 'bgm_site',             // Bangumi 主站地址（跳转用）
+  TOKEN: 'bgm_token',               // 用户 Access Token（敏感信息！）
+  SHOW_BADGE: 'bgm_show_badge',     // 显示状态标签（在看/想看等）
+  SHOW_SCHEDULE: 'bgm_show_schedule', // 显示更新时间（周X）
+  SHOW_SCORE: 'bgm_show_score',     // 显示评分（⭐）
+  SHOW_HINT: 'bgm_show_hint'        // 显示操作说明（二级页面）
+};// ============================================================
+// 📥 loadEnvSettings - 从 localStorage 读取并加载所有配置
+// 由页面启动时的 loadEnvSettings() 自动调用
+// ============================================================
+function loadEnvSettings(){
+  // --- API 端点（读取用户自定义地址，否则用默认值） ---
+  const savedApi = localStorage.getItem(STORAGE_KEYS.API);
+  if(savedApi) API_BASE = savedApi;
+
+  // --- 图片代理前缀 ---
+  const savedProxy = localStorage.getItem(STORAGE_KEYS.IMAGE_PROXY);
+  if(savedProxy !== null) IMAGE_PROXY_PREFIX = savedProxy;
+
+  // --- Bangumi 主站 ---
+  const savedSite = localStorage.getItem(STORAGE_KEYS.BGM_SITE);
+  if(savedSite) BGM_SITE = savedSite;
+
+  // --- 显示选项（逐项读取，无保存记录时使用默认值） ---
+  var savedBadge = localStorage.getItem(STORAGE_KEYS.SHOW_BADGE);
+  showBadge = savedBadge !== null ? (savedBadge === '1') : true;  // 状态标签: 默认开启
+  var savedSch = localStorage.getItem(STORAGE_KEYS.SHOW_SCHEDULE);
+  showSchedule = savedSch !== null ? (savedSch === '1') : true;   // 更新时间: 默认开启
+  var savedScore = localStorage.getItem(STORAGE_KEYS.SHOW_SCORE);
+  showScore = savedScore !== null ? (savedScore === '1') : false;  // 评分: 默认关闭
+  var savedHint = localStorage.getItem(STORAGE_KEYS.SHOW_HINT);
+  showHint = savedHint !== null ? (savedHint === '1') : true;      // 操作说明: 默认开启
+
+  // --- 将读取到的值同步到 UI 控件 ---
+  var apiInput = document.getElementById('apiEndpoint');
+  if(apiInput) apiInput.value = API_BASE;
+  var proxyInput = document.getElementById('imageProxyPrefix');
+  if(proxyInput) proxyInput.value = IMAGE_PROXY_PREFIX;
+  var siteInput = document.getElementById('bgmSite');
+  if(siteInput) siteInput.value = BGM_SITE;
+  var badgeCb = document.getElementById('toggleBadge');
+  if(badgeCb) badgeCb.checked = showBadge;
+  var schCb = document.getElementById('toggleSchedule');
+  if(schCb) schCb.checked = showSchedule;
+  var scoreCb = document.getElementById('toggleScore');
+  if(scoreCb) scoreCb.checked = showScore;
+  var hintCb = document.getElementById('toggleHint');
+  if(hintCb) hintCb.checked = showHint;
+}function getBroadcastDay(item){if(!item.epsList || !item.epsList.length)return '';var now = getBeijingDate();var latest = null;for(var i = 0;i < item.epsList.length;i++){var ep = item.epsList[i];if(!ep.airdate)continue;if(item.watchedSet && item.watchedSet.has(ep.sort))continue;var epDate = new Date(ep.airdate);epDate.setHours(0,0,0,0);if(epDate <= now && diffDays(epDate,now)<= 7){if(!latest || epDate > latest.date){latest ={date: epDate,sort: ep.sort};}}}if(!latest)return '';var days =['日','一','二','三','四','五','六'];return '周' + days[latest.date.getDay()];}function getGenreTag(item){if(!item || !item.tag)return '';var tags = item._allTags;if(!tags || !tags.length){return GENRE_TAGS[item.tag]? item.tag : '';}for(var i = 0;i < tags.length;i++){var name = tags[i].name || tags[i];if(GENRE_TAGS[name])return name;}return '';}// ============================================================
+// 💾 saveEnvSettings - 保存所有配置到 localStorage
+// 点击「保存」按钮时触发，将 UI 控件的值持久化
+// ============================================================
+async function saveEnvSettings(){const btn = document.getElementById('saveEnvBtn');btn.disabled = true;btn.innerHTML = '<span class="spinner"></span> 保存中...';const apiInput = document.getElementById('apiEndpoint').value.trim();const proxyInput = document.getElementById('imageProxyPrefix').value.trim();const siteInput = document.getElementById('bgmSite').value.trim();if(apiInput){API_BASE = apiInput;localStorage.setItem(STORAGE_KEYS.API,apiInput);}else{API_BASE = 'https://api.bgm.tv/v0';localStorage.removeItem(STORAGE_KEYS.API);}IMAGE_PROXY_PREFIX = proxyInput;localStorage.setItem(STORAGE_KEYS.IMAGE_PROXY,proxyInput);if(siteInput){BGM_SITE = siteInput;localStorage.setItem(STORAGE_KEYS.BGM_SITE,siteInput);}else{BGM_SITE = 'https://bgm.tv';localStorage.removeItem(STORAGE_KEYS.BGM_SITE);}var badgeCb = document.getElementById('toggleBadge');showBadge = badgeCb ? badgeCb.checked : true;localStorage.setItem(STORAGE_KEYS.SHOW_BADGE,showBadge ? '1' : '0');var schCb = document.getElementById('toggleSchedule');showSchedule = schCb ? schCb.checked : true;localStorage.setItem(STORAGE_KEYS.SHOW_SCHEDULE,showSchedule ? '1' : '0');var scoreCb = document.getElementById('toggleScore');showScore = scoreCb ? scoreCb.checked : false;localStorage.setItem(STORAGE_KEYS.SHOW_SCORE,showScore ? '1' : '0');var hintCb = document.getElementById('toggleHint');showHint = hintCb ? hintCb.checked : true;localStorage.setItem(STORAGE_KEYS.SHOW_HINT,showHint ? '1' : '0');filterAndRender();if(currentUser){loadedStatuses.clear();animeDB =[];preloadedSubjects.clear();await autoLogin();}showToast('✅ 环境变量已保存，正在重载数据',false);btn.disabled = false;btn.innerHTML = '💾 保存环境变量并重载';}function getProxyImageUrl(originalUrl){if(!originalUrl)return '';if(IMAGE_PROXY_PREFIX){let prefix = IMAGE_PROXY_PREFIX.endsWith('/')? IMAGE_PROXY_PREFIX : IMAGE_PROXY_PREFIX + '/';const match = originalUrl.match(/https?:\/\/[^\/]+\/(.+)/);if(match)return prefix + match[1];return originalUrl;}return originalUrl;}function gotoBgmDetail(){if(currentModalItem && currentModalItem.sid){window.open(`${BGM_SITE}/subject/${currentModalItem.sid}`,'_blank');}}function openEpisodeComment(epId){if(!epId)return;window.open(`${BGM_SITE}/ep/${epId}`,'_blank');}const STATUS_MAP ={1: 'wish',2: 'watched',3: 'watching',4: 'hold',5: 'drop'};const STATUS_TO_CODE ={wish: 1,watched: 2,watching: 3,hold: 4,drop: 5};const STATUS_NAME ={wish: '想看',watching: '在看',watched: '看过',hold: '搁置',drop: '抛弃'};const TOKEN_KEY = 'bgm_token';const ALL_CATEGORIES =['watching','wish','watched','hold','drop'];let animeDB =[];let loadedStatuses = new Set();let currentFilter = 'watching';let searchKeyword = '';let currentUser = null;let syncInProgress = false;let currentModalItem = null;let epTogglingIds = new Set();let activeEpInfo = null;let sortBy = '';let preloadingActive = false;let preloadedSubjects = new Set();let loadingCount = 0;let showBadge = true;let showSchedule = true;let showScore = false;let showHint = true;var GENRE_TAGS ={'恋爱':1,'百合':1,'后宫':1,'异世界':1,'校园':1,'日常':1,'搞笑':1,'奇幻':1,'科幻':1,'机战':1,'热血':1,'冒险':1,'悬疑':1,'推理':1,'恐怖':1,'萌系':1,'治愈':1,'音乐':1,'运动':1,'竞技':1,'战斗':1,'动作':1,'青春':1,'美食':1,'职场':1,'历史':1,'战争':1,'社会':1,'励志':1,'泡面番':1,'催泪':1,'机甲':1,'魔法':1,'穿越':1,'智斗':1};function showLoadingBar(){loadingCount++;document.getElementById('loadingBar').classList.add('active');}function hideLoadingBar(){loadingCount = Math.max(0,loadingCount - 1);if(loadingCount === 0)document.getElementById('loadingBar').classList.remove('active');}function showToast(msg,isError = false){const toast = document.getElementById('toastMsg');toast.innerText = msg;toast.classList.add('show');toast.style.background = isError ? 'rgba(200,60,60,0.9)' : 'rgba(0,0,0,0.85)';setTimeout(()=>toast.classList.remove('show'),2800);}function escapeHtml(str){if(!str)return '';return str.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}function getStoredToken(){return localStorage.getItem(TOKEN_KEY)|| '';}function setStoredToken(token){if(token && token.trim())localStorage.setItem(TOKEN_KEY,token.trim());else localStorage.removeItem(TOKEN_KEY);}function clearStoredToken(){localStorage.removeItem(TOKEN_KEY);}function getEffectiveToken(){return(INBUILT_TOKEN && INBUILT_TOKEN.trim())? INBUILT_TOKEN.trim(): getStoredToken();}async function copyTextToClipboard(text){if(navigator.clipboard){try{await navigator.clipboard.writeText(text);return true;}catch(e){}}const textarea = document.createElement('textarea');textarea.value = text;textarea.style.position = 'fixed';textarea.style.left = '0';textarea.style.top = '0';textarea.style.width = '1px';textarea.style.height = '1px';textarea.style.opacity = '0.01';textarea.style.border = 'none';textarea.style.padding = '0';textarea.style.margin = '0';textarea.style.outline = 'none';textarea.style.boxShadow = 'none';textarea.style.background = 'transparent';textarea.style.color = '#000';textarea.style.fontSize = '12px';textarea.style.pointerEvents = 'none';textarea.readOnly = true;document.body.appendChild(textarea);try{textarea.focus();textarea.select();textarea.setSelectionRange(0,text.length);const ok = document.execCommand('copy');document.body.removeChild(textarea);if(ok)return true;}catch(e){document.body.removeChild(textarea);}const titleEl = document.getElementById('modalTitle');if(titleEl && window.getSelection){try{const range = document.createRange();range.selectNodeContents(titleEl);const sel = window.getSelection();sel.removeAllRanges();sel.addRange(range);}catch(e){}}return false;}async function performCopy(){const titleElem = document.getElementById('modalTitle');const title = titleElem ? titleElem.innerText : '';if(!title || title === '加载中...'){showToast('暂无标题可复制',true);return false;}const success = await copyTextToClipboard(title);if(success){applyCopySuccess();showToast(`✅ 已复制：「${title.length > 30 ? title.substring(0,27)+'...' : title}」`,false);return true;}else{showToast('❌ 复制失败，请手动选择复制',true);return false;}}function applyCopySuccess(){const titleElem = document.getElementById('modalTitle');if(titleElem){titleElem.classList.add('copy-success');setTimeout(()=>titleElem.classList.remove('copy-success'),1000);}}async function apiCall(path,options ={},retries = 2){const token = getEffectiveToken();if(!token)throw new Error('no_token');const url = API_BASE + path;const separator = url.includes('?')? '&' : '?';const finalUrl = url + separator + '_=' + Date.now()+ Math.random();const controller = new AbortController();const timeoutId = setTimeout(()=>controller.abort(),15000);showLoadingBar();try{const res = await fetch(finalUrl,{...options,headers:{'Authorization': `Bearer ${token}`,'Content-Type': 'application/json',...(options.headers ||{})},cache: 'no-store',signal: controller.signal});clearTimeout(timeoutId);hideLoadingBar();if(res.status === 401)throw new Error('invalid_token');if(res.status === 429 && retries > 0){await new Promise(r=>setTimeout(r,1000));return apiCall(path,options,retries - 1);}if(!res.ok)throw new Error(`HTTP ${res.status}: ${res.statusText}`);const text = await res.text();if(!text)return{};try{return JSON.parse(text);}catch(e){throw new Error(text.slice(0,200));}}catch(err){clearTimeout(timeoutId);hideLoadingBar();if(err.name === 'AbortError')throw new Error('Request timeout');throw err;}}async function fetchCollectionByType(typeCode){const statusKey = STATUS_MAP[typeCode];if(!statusKey)return 0;const code = STATUS_TO_CODE[statusKey];if(!code)return 0;let offset = 0,total = Infinity,count = 0;const username = currentUser?.username || '-';while(offset < total){const resp = await apiCall(`/users/${encodeURIComponent(username)}/collections?subject_type=2&type=${typeCode}&limit=50&offset=${offset}`);const list = resp.data ||[];total = resp.total || list.length;const pageItems =[];for(const col of list){const subject = col.subject ||{};const sid = col.subject_id || subject.id;if(!sid)continue;pageItems.push({sid: Number(sid),name: subject.name_cn || subject.name || '未知',cover: subject.images?.medium || subject.images?.common || '',total: subject.eps || subject.eps_count || 0,episodes: col.ep_status || 0,status: statusKey,score: subject.score || 0,tag:(subject.tags && subject.tags.length && subject.tags[0].name)? subject.tags[0].name : '',_allTags: subject.tags ||[],});}mergeItems(pageItems);count += pageItems.length;filterAndRender();offset += 50;if(list.length < 50)break;}return count;}function mergeItems(newItems){for(const newItem of newItems){const existing = animeDB.find(x=>x.sid === newItem.sid);if(existing){existing.name = newItem.name;existing.cover = newItem.cover;const oldTotal = existing.total;existing.total = Math.max(newItem.total,oldTotal);existing.episodes = newItem.episodes;existing.status = newItem.status;if(newItem.total > oldTotal){existing._needRefresh = true;}if(existing.watchedSet && existing.watchedSet.size !== existing.episodes){existing._needRefresh = true;}}else{animeDB.push({...newItem,id: Date.now()+ Math.random()* 10000,epsList: null,watchedSet: null,_needRefresh: false});}}}async function ensureStatusLoaded(statusType){if(loadedStatuses.has(statusType))return;const code = STATUS_TO_CODE[statusType];if(!code)return;showToast(`📡 加载「${STATUS_NAME[statusType]}」...`);try{loadedStatuses.add(statusType);const count = await fetchCollectionByType(code);if(count === 0 && animeDB.length === 0){showToast(`⏳ 加载「${STATUS_NAME[statusType]}」返回为空，正在重试...`,false);loadedStatuses.delete(statusType);await new Promise(r=>setTimeout(r,1500));const retryCount = await fetchCollectionByType(code);if(retryCount === 0 && animeDB.length === 0){showToast(`❌ 「${STATUS_NAME[statusType]}」未获取到数据，请检查网络`,true);return;}loadedStatuses.add(statusType);showToast(`✅ 已加载 ${retryCount}个条目`);return;}showToast(`✅ 已加载 ${count}个条目`);if(statusType === 'watching'){preloadWatchingEpisodes();}}catch(e){if(e.message === 'invalid_token')logout();else showToast(`❌ 加载失败: ${e.message}`,true);}}async function loadAllCategories(){if(!currentUser)return;const toLoad = ALL_CATEGORIES.filter(cat=>!loadedStatuses.has(cat));if(toLoad.length === 0){filterAndRender();return;}showToast(`📦 正在加载所有分类...`);for(const cat of toLoad)await ensureStatusLoaded(cat);showToast(`✅ 全部分类加载完成，共 ${animeDB.length}个条目`);}async function initLoadDefault(){if(!currentUser)return;if(!loadedStatuses.has('watching'))await ensureStatusLoaded('watching');filterAndRender();}async function syncCurrentFilter(){if(!currentUser || syncInProgress)return;syncInProgress = true;const syncType = currentFilter === 'all' ? '全部' : STATUS_NAME[currentFilter];showToast(`🔄 同步中(${syncType})...`);try{animeDB.forEach(item=>{item.watchedSet = null;item.epsList = null;item._statusFetched = false;item._syncCompleted = false;item._syncFailed = false;item._needRefresh = false;});if(currentFilter === 'all'){loadedStatuses.clear();await loadAllCategories();}else{loadedStatuses.clear();const code = STATUS_TO_CODE[currentFilter];if(code){loadedStatuses.add(currentFilter);await fetchCollectionByType(code);}}if(currentModalItem){const item = currentModalItem;await fetchEpisodesListOnly(item);await fetchAllEpisodeStatus(item);await loadAndRenderEpisodesInModal(item);document.getElementById('modalMeta').innerHTML = `📌 已看 ${item.episodes}/ ${item.total || '?'}话`;}filterAndRender();showToast(`✨ 同步完成`);}catch(e){showToast(`同步失败: ${e.message}`,true);}finally{syncInProgress = false;}}async function fetchEpisodesListOnly(item){if(!item || !item.sid)return false;if(item.epsList && item.epsList.length)return true;if(!item._statusFetched){await fetchAllEpisodeStatus(item);if(item.epsList && item.epsList.length)return true;}try{const resp = await apiCall(`/episodes?subject_id=${item.sid}&type=0&limit=500`);let eps =(resp.data ||[]).filter(e=>{const epNum = e.ep !== undefined ? e.ep : e.sort;return epNum !== undefined && epNum !== null && epNum > 0;}).map(e=>({id: e.id,ep: e.ep !== undefined ? Number(e.ep): Number(e.sort),sort: e.sort !== undefined ? Number(e.sort): Number(e.ep),name: e.name_cn || e.name || '',airdate: e.airdate || null}));eps.sort((a,b)=>a.sort - b.sort);item.epsList = eps;if(item.total === 0 || item.total < eps.length)item.total = eps.length;return true;}catch(e){console.warn(`获取剧集列表失败 ${item.sid}:`,e);return false;}}async function fetchAllEpisodeStatus(item,force = false){if(!force && item._statusFetched)return true;try{const resp = await apiCall(`/users/-/collections/${item.sid}/episodes?limit=500`);const data = resp.data ||[];const epsList =[];const watchedSet = new Set();for(const entry of data){const ep = entry.episode ||{};if(ep.type !== 0)continue;const sortNum = ep.sort !== undefined ? Number(ep.sort): null;if(!sortNum || sortNum <= 0)continue;epsList.push({id: ep.id,ep: ep.ep !== undefined ? Number(ep.ep): sortNum,sort: sortNum,name: ep.name_cn || ep.name || '',airdate: ep.airdate || null});if(entry.type === 2)watchedSet.add(sortNum);}epsList.sort((a,b)=>a.sort - b.sort);item.epsList = epsList;item.watchedSet = watchedSet;item.episodes = watchedSet.size;if(item.total === 0 || item.total < epsList.length)item.total = epsList.length;item._statusFetched = true;return true;}catch(e){console.warn(`批量查询观看状态失败 ${item.sid}:`,e);return false;}}async function preloadWatchingEpisodes(){if(preloadingActive)return;const watchingItems = animeDB.filter(i=>i.status === 'watching');if(watchingItems.length === 0)return;preloadingActive = true;showToast(`⚡ 预加载 ${watchingItems.length}个番剧的剧集列表...`);const queue =[...watchingItems];const concurrency = 3;let completed = 0;const worker = async()=>{while(queue.length){const item = queue.shift();if(preloadedSubjects.has(item.sid))continue;preloadedSubjects.add(item.sid);await fetchEpisodesListOnly(item);completed++;}};await Promise.all(Array(Math.min(concurrency,watchingItems.length)).fill().map(()=>worker()));preloadingActive = false;showToast(`✅ 预加载完成(${completed}部作品)`);filterAndRender();if(currentModalItem && preloadedSubjects.has(currentModalItem.sid))await loadAndRenderEpisodesInModal(currentModalItem);}async function applyEpAction(sid,sortNum,epId,action){const item = animeDB.find(i=>i.sid === sid);if(!item){showToast("条目不存在",true);return;}if(epTogglingIds.has(epId)){showToast("⏳ 操作中，请稍后");return;}epTogglingIds.add(epId);try{if(!item.epsList || !item.epsList.length){if(!(await fetchEpisodesListOnly(item)))throw new Error('无法获取剧集列表');}const epsList = item.epsList;let targetEp = epsList.find(e=>e.id === epId)|| epsList.find(e=>e.sort === sortNum);if(!targetEp)throw new Error(`未找到第 ${sortNum}话`);if(!item.watchedSet)item.watchedSet = new Set();if(action === 'watch'){if(!item.watchedSet.has(targetEp.sort)){await apiCall(`/users/-/collections/-/episodes/${targetEp.id}`,{method: 'PUT',body: JSON.stringify({type: 2})});item.watchedSet.add(targetEp.sort);showToast(`✅ 已标记第 ${targetEp.sort}话为看过`);}else showToast(`ℹ️ 第 ${targetEp.sort}话已经是看过状态`);}else if(action === 'unwatch'){if(item.watchedSet.has(targetEp.sort)){await apiCall(`/users/-/collections/-/episodes/${targetEp.id}`,{method: 'PUT',body: JSON.stringify({type: 0})});item.watchedSet.delete(targetEp.sort);showToast(`⭕ 已撤销第 ${targetEp.sort}话的看过标记`);}else showToast(`ℹ️ 第 ${targetEp.sort}话本来就没标记`);}else if(action === 'watchUpTo'){let changed = 0;for(let ep of epsList){if(ep.sort <= targetEp.sort && !item.watchedSet.has(ep.sort)){await apiCall(`/users/-/collections/-/episodes/${ep.id}`,{method: 'PUT',body: JSON.stringify({type: 2})});item.watchedSet.add(ep.sort);changed++;}}showToast(`📌 已将 1~${targetEp.sort}话标记为看过(新增 ${changed}集)`);}item.episodes = item.watchedSet.size;let newStatus = item.status;if(item.total > 0 && item.episodes >= item.total)newStatus = 'watched';else if(item.episodes > 0)newStatus = 'watching';else newStatus = '';if(newStatus && newStatus !== item.status && STATUS_TO_CODE[newStatus]){item.status = newStatus;await apiCall(`/users/-/collections/${item.sid}`,{method: 'PATCH',body: JSON.stringify({type: STATUS_TO_CODE[newStatus]})}).catch(e=>console.warn);}if(currentModalItem && currentModalItem.sid === sid){document.getElementById('modalMeta').innerHTML = `📌 已看 ${item.episodes}/ ${item.total || '?'}话`;renderModalStatusButtons(item);await loadAndRenderEpisodesInModal(item);}filterAndRender();}catch(e){showToast(`❌ 操作失败: ${e.message}`,true);if(e.message === 'invalid_token')logout();}finally{epTogglingIds.delete(epId);}}async function watchOneEpisode(){if(!currentModalItem)return;const item = currentModalItem;if(!item.epsList || !item.epsList.length){if(!(await fetchEpisodesListOnly(item))){showToast("无法获取剧集列表",true);return;}}if(!item.watchedSet)item.watchedSet = new Set();const nextEp = item.epsList.find(ep=>!item.watchedSet.has(ep.sort));if(!nextEp){showToast("🎉 已追平进度，没有下一集了");return;}await applyEpAction(item.sid,nextEp.sort,nextEp.id,'watch');}function showEpMenu(e,sid,sortNum,epId){e.stopPropagation();hideContextMenu();const item = animeDB.find(i=>i.sid === sid);if(!item)return;const ep = item.epsList?.find(ep=>ep.id === epId || ep.sort === sortNum);const epTitle = ep?.name ? ep.name : '本集';const dateStr = ep?.airdate ? ` · ${ep.airdate}` : '';const menu = document.getElementById('episodeMenu');menu.innerHTML = `
+      <div class="menu-header">第 ${sortNum}话 · ${escapeHtml(epTitle)}${dateStr}</div>
+      <div class="menu-item" data-action="watch">✅ 看过</div>
+      <div class="menu-item" data-action="watchUpTo">📌 看到这里</div>
+      <div class="menu-item" data-action="unwatch">⭕ 撤销</div>
+    `;menu.querySelectorAll('.menu-item').forEach(btn=>{btn.addEventListener('click',(ev)=>{ev.stopPropagation();const action = btn.dataset.action;if(action === 'watch')applyEpAction(sid,sortNum,epId,'watch');else if(action === 'watchUpTo')applyEpAction(sid,sortNum,epId,'watchUpTo');else if(action === 'unwatch')applyEpAction(sid,sortNum,epId,'unwatch');hideContextMenu();});});const header = menu.querySelector('.menu-header');if(header){header.addEventListener('click',(ev)=>{ev.stopPropagation();openEpisodeComment(epId);hideContextMenu();});}menu.style.display = 'block';let x = e.clientX,y = e.clientY;if(x + menu.offsetWidth > window.innerWidth)x = window.innerWidth - menu.offsetWidth - 8;if(y + menu.offsetHeight > window.innerHeight)y = window.innerHeight - menu.offsetHeight - 8;menu.style.left = x + 'px';menu.style.top = y + 'px';menu.classList.add('show');document.getElementById('globalMask').classList.add('active');activeEpInfo ={sid,sortNum,epId};}function hideContextMenu(){document.getElementById('episodeMenu').classList.remove('show');document.getElementById('episodeMenu').style.display = 'none';const ctxMenu = document.getElementById('contextMenu');if(ctxMenu)ctxMenu.style.display = 'none';document.getElementById('globalMask').classList.remove('active');activeEpInfo = null;}async function showCardContextMenu(e,sid){e.preventDefault();hideContextMenu();const item = animeDB.find(i=>i.sid === sid);if(!item)return;if(!item.epsList && item.status === 'watching')await fetchEpisodesListOnly(item);const watchedCount =(item.watchedSet && item.watchedSet.size)? item.watchedSet.size :(item.episodes || 0);let nextSortNum = null;if(item.epsList && item.epsList.length){if(!item.watchedSet)item.watchedSet = new Set();const nextEp = item.epsList.find(ep=>!item.watchedSet.has(ep.sort));if(nextEp)nextSortNum = nextEp.sort;}else if(item.total > 0 && watchedCount < item.total){nextSortNum = watchedCount + 1;}const menu = document.getElementById('contextMenu');let html = `<div class="menu-info">📖 已看 ${watchedCount}话</div>`;if(nextSortNum !== null){html += `<div class="menu-item" data-action="watchNext">📺 看了第 ${nextSortNum}话</div>`;}else{html += `<div class="menu-item disabled">✅ 已全部看完</div>`;}menu.innerHTML = html;const watchBtn = menu.querySelector('[data-action="watchNext"]');if(watchBtn){watchBtn.addEventListener('click',async()=>{hideContextMenu();if(item.epsList && item.epsList.length){const targetEp = item.epsList.find(ep=>ep.sort === nextSortNum);if(targetEp)await applyEpAction(item.sid,targetEp.sort,targetEp.id,'watch');else{const fallbackEp = item.epsList.find(ep=>!item.watchedSet.has(ep.sort));if(fallbackEp)await applyEpAction(item.sid,fallbackEp.sort,fallbackEp.id,'watch');}}else if(item.total > 0 && watchedCount < item.total){await applyEpAction(item.sid,nextSortNum,`temp_${nextSortNum}`,'watch');}filterAndRender();});}menu.style.display = 'block';let x = e.clientX,y = e.clientY;if(x + menu.offsetWidth > window.innerWidth)x = window.innerWidth - menu.offsetWidth - 8;if(y + menu.offsetHeight > window.innerHeight)y = window.innerHeight - menu.offsetHeight - 8;menu.style.left = x + 'px';menu.style.top = y + 'px';document.getElementById('globalMask').classList.add('active');}function filterAndRender(){let filtered =(currentFilter === 'all')?[...animeDB]: animeDB.filter(i=>i.status === currentFilter);if(searchKeyword.trim())filtered = filtered.filter(i=>i.name.toLowerCase().includes(searchKeyword.toLowerCase()));if(sortBy === 'week'){var isWatching = currentFilter === 'watching';filtered.sort(function(a,b){if(!isWatching)return 0;var da = getBroadcastDay(a)|| 'zzz';var db = getBroadcastDay(b)|| 'zzz';return da.localeCompare(db);});}else if(sortBy === 'score'){filtered.sort(function(a,b){return(b.score || 0)-(a.score || 0);});}else if(sortBy === 'progress'){filtered.sort(function(a,b){var pa =(a.watchedSet ? a.watchedSet.size :(a.episodes || 0))/(a.total || 1);var pb =(b.watchedSet ? b.watchedSet.size :(b.episodes || 0))/(b.total || 1);return pa - pb;});}else if(sortBy === 'tag'){filtered.sort(function(a,b){var ta = a.tag || 'zzz';var tb = b.tag || 'zzz';return ta.localeCompare(tb);});}const total = animeDB.length;const watched = animeDB.filter(i=>i.watchedSet && i.watchedSet.size >=(i.total || 0)).length;const watching = animeDB.filter(i=>i.status === 'watching').length;const wish = animeDB.filter(i=>i.status === 'wish').length;var statsEl = document.getElementById('statsArea');var statsRight = statsEl.querySelector('.stats-right');statsEl.innerHTML = `<span class="stat-item">📚 共 <em class="stat-num total">${total}</em></span><span class="stat-item">✅ 看过 <em class="stat-num watched">${watched}</em></span><span class="stat-item">▶️ 在看 <em class="stat-num watching">${watching}</em></span><span class="stat-item">💖 想看 <em class="stat-num wish">${wish}</em></span>`;if(statsRight)statsEl.appendChild(statsRight);document.getElementById('progressFill').style.width = total ? Math.round(watched / total * 100)+ '%' : '0%';const grid = document.getElementById('gridContainer');if(!filtered.length){if(total === 0){grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px 60px;color:var(--text2);"><div style="font-size:36px;margin-bottom:16px;opacity:0.3;">📡</div><div style="font-size:14px;font-weight:500;">加载中</div><div style="font-size:11px;margin-top:6px;opacity:0.6;">正在获取你的收藏数据...</div></div>';}else{grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px 60px;color:var(--text2);"><div style="font-size:36px;margin-bottom:16px;opacity:0.3;">📭</div><div style="font-size:14px;font-weight:500;">这里还没有条目</div><div style="font-size:11px;margin-top:6px;opacity:0.6;">试试切换到其他分类看看</div></div>';}return;}grid.innerHTML = filtered.map(item=>{const watchedCount =(item.watchedSet && item.watchedSet.size)? item.watchedSet.size :(item.episodes || 0);const imgSrc = getProxyImageUrl(item.cover);const coverHtml = imgSrc ? `<img src="${escapeHtml(imgSrc)}" loading="lazy" onerror="this.parentElement.innerHTML='🎬'">` : '🎬';const aired = getAiredCount(item);const airing = aired !== null && item.total > 0 && aired < item.total;const epsLabel = airing ? `${watchedCount}/${item.total}(${aired})` : `${watchedCount}/${item.total || '?'}`;var badges = '';if(airing && currentFilter === 'watching' && showSchedule){var sl = getBroadcastDay(item);if(sl)badges += '<div class="day">' + sl + '</div>';}if(showScore && item.score > 0){badges += '<div class="score">⭐' + item.score + '</div>';}var statusBadge = showBadge && item.status ?('<div class="bg ' + item.status + '">' + STATUS_NAME[item.status]+ '</div>'): '';return `<div class="card" onclick="openEpisodeDetail(${item.sid})" oncontextmenu="event.preventDefault();showCardContextMenu(event,${item.sid})"><div class="cv">${coverHtml}${statusBadge}${badges}</div><div class="info"><div class="ti">${escapeHtml(item.name)}</div><div class="meta"><span class="eps-progress">${epsLabel}</span></div></div></div>`;}).join('');}function getBeijingDate(){const now = new Date();const beijingStr = now.toLocaleString("en-US",{timeZone: "Asia/Shanghai"});const beijingDate = new Date(beijingStr);beijingDate.setHours(0,0,0,0);return beijingDate;}function diffDays(d1,d2){return Math.ceil(Math.abs(d2-d1)/(1000*3600*24));}function getAiredCount(item){if(!item.epsList || !item.epsList.length)return null;const now = getBeijingDate();let aired = 0;for(const ep of item.epsList){if(ep.airdate){const epDate = new Date(ep.airdate);epDate.setHours(0,0,0,0);if(epDate <= now)aired++;}}return aired;}async function loadAndRenderEpisodesInModal(item){if(item._syncing)return;item._syncing = true;try{const container = document.getElementById('episodesListArea');if(!item.epsList || !item.epsList.length){container.innerHTML = `<div style="text-align:center;padding:20px;"><span class="spinner"></span> 加载剧集列表...</div>`;if(!(await fetchEpisodesListOnly(item))){container.innerHTML = `<div>❌ 无法获取剧集信息</div>`;return;}}const epsList = item.epsList;if(!epsList.length){container.innerHTML = `<div>📭 该作品没有剧集数据</div>`;return;}const nowBeijing = getBeijingDate();let latestCandidate = null;for(const ep of epsList){if(ep.airdate && !item.watchedSet?.has(ep.sort)){const epDate = new Date(ep.airdate);epDate.setHours(0,0,0,0);if(epDate <= nowBeijing && diffDays(epDate,nowBeijing)<= 7){if(!latestCandidate || epDate > latestCandidate.airdate)latestCandidate ={sort: ep.sort,airdate: epDate};}}}let html = `<div class="ep-grid">`;for(const ep of epsList){const watched = item.watchedSet?.has(ep.sort)|| false;let isFuture = false;if(ep.airdate){const epDate = new Date(ep.airdate);epDate.setHours(0,0,0,0);if(epDate > nowBeijing)isFuture = true;}const isLatest =(!watched && latestCandidate && ep.sort === latestCandidate.sort);let extraClass = watched ? 'watched' :(isFuture ? 'future-ep' :(isLatest ? 'latest-unwatched' : ''));html += `<div class="ep-item ${extraClass}" data-ep-id="${ep.id}" data-ep-num="${ep.sort}" onclick="event.stopPropagation();showEpMenu(event,${item.sid},${ep.sort},'${ep.id}')">${ep.sort}</div>`;}html += `</div>${showHint ? '<div class="progress-text">✨ 点击单集 → 菜单：「看过」「看到这里」「撤销」<br>🟢 绿色 = 最近7天内播出的未看最新集<br>⬜ 灰色 = 未播出集数<br>💡 点击菜单顶部标题可直接跳转本集评论区</div>' : ''}`;container.innerHTML = html;}finally{item._syncing = false;}}function renderModalStatusButtons(item){const container = document.getElementById('modalStatusBtns');if(!container)return;const statuses =['wish','watched','watching','hold','drop'];container.innerHTML = statuses.map(st=>`<div class="status-chip ${item.status === st ? 'active' : ''}" onclick="updateItemStatusFromModal(${item.sid},'${st}')">${STATUS_NAME[st]}</div>`).join('');}async function updateItemStatusFromModal(sid,newStatus){const item = animeDB.find(i=>i.sid === sid);if(!item || item.status === newStatus)return;showToast(`🔄 变更状态为「${STATUS_NAME[newStatus]}」...`);const oldStatus = item.status;item.status = newStatus;try{await apiCall(`/users/-/collections/${item.sid}`,{method: 'PATCH',body: JSON.stringify({type: STATUS_TO_CODE[newStatus]})});showToast(`✅ 状态已更新为「${STATUS_NAME[newStatus]}」`);}catch(e){showToast(`❌ 状态同步失败: ${e.message}`,true);item.status = oldStatus;filterAndRender();if(currentModalItem && currentModalItem.sid === sid)renderModalStatusButtons(item);return;}filterAndRender();if(currentModalItem && currentModalItem.sid === sid){renderModalStatusButtons(item);document.getElementById('modalMeta').innerHTML = `📌 已看 ${item.episodes}/ ${item.total || '?'}话`;}}async function openEpisodeDetail(sid){const item = animeDB.find(i=>i.sid === sid);if(!item)return;currentModalItem = item;document.getElementById('episodeModal').classList.add('active');document.getElementById('modalTitle').innerText = item.name;document.getElementById('modalTitle').setAttribute('data-sid',item.sid);var metaParts =['📌 已看 ' +(item.episodes || 0)+ ' / ' +(item.total || '?')+ ' 话'];if(item.score > 0)metaParts.push('⭐' + item.score);var genreTag = getGenreTag(item);if(genreTag)metaParts.push(escapeHtml(genreTag));document.getElementById('modalMeta').innerHTML = metaParts.join(' &nbsp;|&nbsp;');const posterEl = document.getElementById('modalPoster');if(item.cover){posterEl.src = getProxyImageUrl(item.cover);posterEl.style.display = 'block';}else{posterEl.style.display = 'none';}renderModalStatusButtons(item);await loadAndRenderEpisodesInModal(item);}function closeEpisodeModal(){document.getElementById('episodeModal').classList.remove('active');currentModalItem = null;}async function loginWithToken(tokenValue){if(!tokenValue || !tokenValue.trim()){showToast("Token 不能为空",true);return false;}const token = tokenValue.trim();const oldToken = getStoredToken();setStoredToken(token);try{const me = await apiCall('/me');currentUser ={username: me.username,nickname: me.nickname || me.username,avatar: me.avatar?.large || ''};document.getElementById('connBar').classList.add('show');document.getElementById('connUser').innerHTML = currentUser.nickname;const avatarImg = document.getElementById('userAvatar');if(currentUser.avatar){avatarImg.src = getProxyImageUrl(currentUser.avatar);avatarImg.style.display = 'inline-block';}else avatarImg.style.display = 'none';loadedStatuses.clear();animeDB =[];preloadedSubjects.clear();await initLoadDefault();showToast(`🎉 已连接,${currentUser.nickname}`);return true;}catch(e){setStoredToken(oldToken);showToast(`❌ Token 无效: ${e.message}`,true);return false;}}function logout(){currentUser = null;clearStoredToken();loadedStatuses.clear();animeDB =[];preloadedSubjects.clear();filterAndRender();document.getElementById('connBar').classList.remove('show');showToast('🔌 已断开连接');hideContextMenu();updateSettingsUI();}function openSettings(){const modal = document.getElementById('settingsModal');document.getElementById('tokenInput').value = getEffectiveToken();const apiInput = document.getElementById('apiEndpoint');if(apiInput)apiInput.value = API_BASE;const proxyInput = document.getElementById('imageProxyPrefix');if(proxyInput)proxyInput.value = IMAGE_PROXY_PREFIX;const siteInput = document.getElementById('bgmSite');if(siteInput)siteInput.value = BGM_SITE;updateSettingsUI();modal.classList.add('active');}function updateSettingsUI(){const tokenStatusDiv = document.getElementById('tokenStatus');const connectBtn = document.getElementById('connectBtn');const disconnectBtn = document.getElementById('disconnectBtn');if(currentUser){connectBtn.style.display = 'none';disconnectBtn.style.display = 'inline-block';tokenStatusDiv.innerHTML = `<span>✅ 已连接 ${currentUser.nickname}</span>`;tokenStatusDiv.className = 'token-status success';}else{connectBtn.style.display = 'inline-block';disconnectBtn.style.display = 'none';const stored = getEffectiveToken();tokenStatusDiv.innerHTML = stored ? `<span>⚠️ Token 已保存，点击「连接」验证</span>` : `<span>⚙️ 未设置 Token，请粘贴后点击连接</span>`;tokenStatusDiv.className = 'token-status';}}async function onConnect(){const token = document.getElementById('tokenInput').value.trim();if(!token){showToast("请输入 Access Token",true);return;}const btn = document.getElementById('connectBtn');btn.disabled = true;btn.innerHTML = '<span class="spinner"></span> 连接中...';if(await loginWithToken(token))closeSettings();btn.disabled = false;btn.innerHTML = '🔌 连接';updateSettingsUI();}function onDisconnect(){if(confirm('确定要断开连接吗？')){logout();closeSettings();}}function closeSettings(){document.getElementById('settingsModal').classList.remove('active');}async function pingUrl(btn){var input = document.querySelector(btn.getAttribute('data-url-selector'));var url = input ? input.value.trim(): '';if(!url){showToast('请输入 URL',true);return;}btn.classList.add('pinging');var resultSpan = btn.nextElementSibling;resultSpan.textContent = '...';var start = Date.now();try{var controller = new AbortController();setTimeout(function(){controller.abort();},5000);await fetch(url,{method: 'HEAD',mode: 'no-cors',signal: controller.signal});var ms = Date.now()- start;resultSpan.textContent = ms + 'ms';resultSpan.className = 'ping-result g';}catch(e){var ms = Date.now()- start;resultSpan.textContent = '⍱' + ms + 'ms';resultSpan.className = 'ping-result r';}btn.classList.remove('pinging');}function onSearchInput(){searchKeyword = document.getElementById('searchInput').value;filterAndRender();}function setFilter(f){currentFilter = f;document.querySelectorAll('#filterBar button').forEach(btn=>btn.classList.toggle('active',btn.dataset.filter === f));document.getElementById('gridContainer').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text2);"><div style="font-size:32px;margin-bottom:12px;opacity:0.3;"><span class="spinner" style="width:24px;height:24px;border-width:3px;"></span></div></div>';if(f === 'all')loadAllCategories();else if(!loadedStatuses.has(f)&& currentUser)ensureStatusLoaded(f);else filterAndRender();}function toggleSort(){var modes =['','week','score','progress','tag'];var labels =['默认','更新时间','评分','进度','标签'];var idx = modes.indexOf(sortBy);sortBy = modes[(idx + 1)% modes.length];var btn = document.getElementById('sortBtn');btn.textContent = sortBy ? '● ' : '▼ ';btn.textContent += sortBy ? '排序:' + labels[(idx + 1)% modes.length]: '排序';filterAndRender();}async function autoLogin(){const token = getEffectiveToken();if(token)await loginWithToken(token);updateSettingsUI();}let longPressTimer = null;let longPressTriggered = false;function setupGlobalCopyEvents(){document.addEventListener('touchstart',function(e){const title = e.target.closest('#modalTitle');if(title && document.getElementById('episodeModal').classList.contains('active')){longPressTriggered = false;longPressTimer = setTimeout(()=>{longPressTriggered = true;performCopy();},500);}},{passive: false});document.addEventListener('touchmove',function(){if(longPressTimer){clearTimeout(longPressTimer);longPressTimer = null;}},{passive: true});document.addEventListener('touchend',function(){if(longPressTimer){clearTimeout(longPressTimer);longPressTimer = null;}},{passive: true});document.addEventListener('contextmenu',function(e){const title = e.target.closest('#modalTitle');if(title && document.getElementById('episodeModal').classList.contains('active')){e.preventDefault();e.stopPropagation();performCopy();return false;}});}window.showCardContextMenu = showCardContextMenu;window.filterAndRender = filterAndRender;window.openEpisodeDetail = openEpisodeDetail;window.updateItemStatusFromModal = updateItemStatusFromModal;window.closeEpisodeModal = closeEpisodeModal;window.setFilter = setFilter;window.toggleSort = toggleSort;window.syncCurrentFilter = syncCurrentFilter;window.openSettings = openSettings;window.logout = logout;window.showEpMenu = showEpMenu;window.hideContextMenu = hideContextMenu;window.gotoBgmDetail = gotoBgmDetail;window.watchOneEpisode = watchOneEpisode;window.onSearchInput = onSearchInput;window.onConnect = onConnect;window.onDisconnect = onDisconnect;window.closeSettings = closeSettings;window.pingUrl = pingUrl;window.openEpisodeComment = openEpisodeComment;document.getElementById('connectBtn').onclick = onConnect;document.getElementById('disconnectBtn').onclick = onDisconnect;document.getElementById('saveEnvBtn').onclick = saveEnvSettings;loadEnvSettings();autoLogin();setupGlobalCopyEvents();document.addEventListener('click',function(e){if(!e.target.closest('.ep-menu')&& !e.target.closest('.context-menu'))hideContextMenu();});</script>
+</body>
+</html>
