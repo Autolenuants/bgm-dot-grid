@@ -1,38 +1,44 @@
-export interface Env {
-  BGM_ACCESS_TOKEN: string;
+出口 接口 env {
+  BGM_ACCESS_TOKEN：线;
 }
 
-export async function onRequest(context: { request: Request; env: Env }) {
-  const { request, env } = context;
-  const url = new URL(request.url);
+出口 异步 功能 onRequest(context: {  request:  request; env : env  }) {
+  Const {  request, env  } = context;
+  ConstURL = 新的 url( request.url);
+  
+  Const路径 = url.pathname.replace('/api', '');
+  ConsttargetUrl = 'https://api.bgm.tv${路径}${URL.搜索}`;
+  
+  // 创建新 headers，不直接修改 request.headers（只读）
+  Const页眉 = 新的 Headers();
+  // 复制除 Authorization 外的所有头
+  for (Const  [key, value] ……的 请求.Headers) {
+    if (key.toLowerCase() !== 'authorization') {
+      Headers.set(key, value);
+    }
+  }
+  // 强制使用环境变量的 Token
+  Headers.set('authorization', '承载器${env.BGM_ACCESS_TOKEN}')；
+  Headers.set('User-Agent', 'bgm-dot-grid-cf/1.0');
 
-  // 剔除 /api 前缀，拼接 Bangumi 官方地址
-  const path = url.pathname.replace('/api', '');
-  const targetUrl = `https://api.bgm.tv${path}${url.search}`;
-
-  const headers = new Headers(request.headers);
-  // 从环境变量读取 Token（安全！）
-  headers.set('Authorization', `Bearer ${env.BGM_ACCESS_TOKEN}`);
-  headers.set('User-Agent', 'bgm-dot-grid-cf/1.0');
-
-  try {
-    const resp = await fetch(targetUrl, {
-      method: request.method,
-      headers: headers,
-      body: request.method !== 'GET' ? request.body : undefined,
+  尝试 {
+    ConstRESP = 等候 fetch(targetUrl, {
+      method:  request.method,
+      Headers: Headers,
+      body:  request.method !== 'GET' ?  request.body : undefined,
     });
-
-    const respHeaders = new Headers(resp.headers);
+    
+    ConstrespHeaders = 新的 Headers(resp.Headers);
     respHeaders.set('Access-Control-Allow-Origin', '*');
     
-    return new Response(resp.body, {
-      status: resp.status,
-      headers: respHeaders,
+    返回 新的 Response(resp.body, {
+      Status: resp.Status,
+      Headers: respHeaders,
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: '代理请求失败' }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' },
+    返回 新的 Response(JSON.stringify({ error: '代理请求失败' }), {
+      Status: 502,
+      Headers: { 'Content-Type': '应用程序/约翰逊 },
     });
   }
 }
